@@ -112,7 +112,7 @@ namespace show_windows_button
                 {
                     Hwnd = hWnd.ToInt64(),
                     Title = title.Length == 0 ? "<no title>" : title.ToString(),
-                    Icon = null, // если нужны иконки – возвращайте GetIcon(hWnd)
+                    Icon = GetIcon(hWnd),
                     DesktopIndex = desktopIndex
                 });
                 return true;
@@ -152,6 +152,68 @@ namespace show_windows_button
             catch { /* старые ОС без виртуальных рабочих столов */ }
             return map;
         }
+
+        #region Icon extraction (Win32 → BitmapImage)
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+        private const uint WM_GETICON = 0x007F;
+        private const uint ICON_SMALL2 = 2;
+
+        [DllImport("user32.dll")]
+        private static extern bool DestroyIcon(IntPtr hIcon);
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+        private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes,
+            ref SHFILEINFO psfi, uint cbSizeFileInfo, uint uFlags);
+
+        private const uint SHGFI_ICON = 0x000000100;
+        private const uint SHGFI_SMALLICON = 0x000000001;
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct SHFILEINFO
+        {
+            public IntPtr hIcon;
+            public int iIcon;
+            public uint dwAttributes;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+            public string szDisplayName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
+            public string szTypeName;
+        };
+
+        private static BitmapImage? GetIcon(IntPtr hWnd)
+        {
+            IntPtr hIcon = SendMessage(hWnd, WM_GETICON, (IntPtr)ICON_SMALL2, IntPtr.Zero);
+            if (hIcon == IntPtr.Zero)
+                hIcon = SendMessage(hWnd, WM_GETICON, IntPtr.Zero, IntPtr.Zero); // ICON_BIG
+
+            if (hIcon == IntPtr.Zero) // fallback – значок по EXE
+            {
+                uint pid = 0;
+                GetWindowThreadProcessId(hWnd, out pid);
+                string exe = System.Diagnostics.Process.GetProcessById((int)pid).MainModule?.FileName ?? string.Empty;
+                if (!string.IsNullOrEmpty(exe))
+                {
+                    var shfi = new SHFILEINFO();
+                    IntPtr hres = SHGetFileInfo(exe, 0, ref shfi, (uint)Marshal.SizeOf<SHFILEINFO>(), SHGFI_ICON | SHGFI_SMALLICON);
+                    hIcon = hres != IntPtr.Zero ? shfi.hIcon : IntPtr.Zero;
+                }
+            }
+
+            if (hIcon == IntPtr.Zero) return null;
+
+            BitmapImage bmp = new();
+            using var ico = System.Drawing.Icon.FromHandle(hIcon);
+            using var ms = new MemoryStream();
+            ico.ToBitmap().Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            ms.Position = 0;
+            bmp.SetSource(ms.AsRandomAccessStream());
+            DestroyIcon(hIcon);
+            return bmp;
+        }
+        #endregion
+
     }
 
     public sealed class WindowInfo
