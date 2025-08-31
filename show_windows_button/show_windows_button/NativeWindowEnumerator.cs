@@ -1,4 +1,6 @@
-﻿using Microsoft.UI.Xaml.Media.Imaging;
+﻿//NativeWindowEnumarator.cs
+
+using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

@@ -1,4 +1,6 @@
-﻿using Microsoft.UI.Xaml;
+﻿//App.xaml.cs
+
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
@@ -17,43 +19,56 @@ using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace show_windows_button
 {
-    /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
-    /// </summary>
+   
     public partial class App : Application
     {
-        private Window? _window;
-        private Window? _windowAllAps;
-
-        /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
+      
         public App()
         {
             InitializeComponent();
         }
 
-        /// <summary>
-        /// Invoked when the application is launched.
-        /// </summary>
-        /// <param name="args">Details about the launch request and process.</param>
+
+        WndOpenedApps _openedApps;
+
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            _window = new MainWindow();
-            _window.Activate();
-
-            // _windowAllAps = new WndOpenedApps();
-            // _windowAllAps.Activate();
-
-            //TEST LIST CURR WONDOWS
+          
+            //TEST LIST CURR WINDOWS
             var openedAll = NativeWindowEnumerator.GetAllOpenedWindows();
 
+            //  _helperWindow = new TaskbarHelperWindow();
+            //   _helperWindow.Activated += OnTaskbarIconClicked;
+            //_helperWindow.Activate();
+            _openedApps = new WndOpenedApps();
+            _openedApps.Activate();
+            //_openedApps.HideWndOpenedApps();
         }
+
+      
+
+        WndOpenedApps _popupWindow;
+
+        private void OnTaskbarIconClicked(object sender, WindowActivatedEventArgs args)
+        {
+            if (args.WindowActivationState != WindowActivationState.Deactivated)
+            {
+                if (_popupWindow == null || _popupWindow.IsClosed)
+                {
+                    _popupWindow = new WndOpenedApps();
+                    _popupWindow.Closed += (s, e) => _popupWindow = null;
+                    _popupWindow.Activate(); // ← ТОЛЬКО здесь активируем!
+                    _popupWindow.MoveToCursorPos();
+                }
+            }
+        }
+
+      
+
+
+
     }
 }

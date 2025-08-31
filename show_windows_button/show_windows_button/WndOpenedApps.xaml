@@ -1,4 +1,4 @@
-﻿
+﻿<!-- WndOpenedApps.xaml -->
 <Window
     x:Class="show_windows_button.WndOpenedApps"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"

@@ -1,4 +1,5 @@
-﻿using Microsoft.UI;
+﻿//WndOpenedApps.xaml.cs
+using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -7,26 +8,22 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using WinRT.Interop;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace show_windows_button
 {
-    /// <summary>
-    /// An empty window that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class WndOpenedApps : Window
     {
+        public bool IsClosed { get; private set; } = false;
+        private const int SW_MINIMIZE = 6;
         public WndOpenedApps()
         {
             // обработчик потери фокуса
             this.Activated += OnWindowActivated;
             InitializeComponent();
-           
+            this.Closed += (sender, args) => IsClosed = true;
             HideDecoration();
-            MoveToCursorPos();
+            //MoveToCursorPos();
 
-            Refresh();
+            //Refresh();
         }
 
         private void Refresh()
@@ -52,7 +49,7 @@ namespace show_windows_button
             appWindow.Resize(new Windows.Graphics.SizeInt32(320, 480));
         }
 
-        private void MoveToCursorPos()
+        public void MoveToCursorPos()
         {
             // Получаем позицию курсора
             POINT cursorPos;
@@ -93,17 +90,32 @@ namespace show_windows_button
             HideWndOpenedApps();
         }
 
-        private void HideWndOpenedApps()
+        public void HideWndOpenedApps()
         {
             Debug.WriteLine("[WndOpenedApps] : HideWndOpenedApps");
-            Close();
+            IntPtr hWnd = WindowNative.GetWindowHandle(this);
+            ShowWindow(hWnd, SW_MINIMIZE);
+            //Close();
         }
 
+
+        //При ухода с фокуса прятять
         private void OnWindowActivated(object sender, WindowActivatedEventArgs args)
         {
             Debug.WriteLine($"[WndOpenedApps] : OnWindowActivated : {args.WindowActivationState}");
-            if (args.WindowActivationState == WindowActivationState.Deactivated) Close();
+            if (args.WindowActivationState == WindowActivationState.Deactivated)
+            {
+                HideWndOpenedApps();
+            }
+
+            if (args.WindowActivationState == WindowActivationState.CodeActivated)
+            {
+                MoveToCursorPos();
+                Refresh();
+            }
         }
+
+       
 
         #region Win32 activate
         [DllImport("user32.dll")]
