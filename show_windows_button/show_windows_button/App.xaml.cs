@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
@@ -11,6 +6,12 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
@@ -27,6 +28,7 @@ namespace show_windows_button
     public partial class App : Application
     {
         private Window? _window;
+        private Window? _windowAllAps;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -45,6 +47,15 @@ namespace show_windows_button
         {
             _window = new MainWindow();
             _window.Activate();
+
+            // _windowAllAps = new WndOpenedApps();
+            // _windowAllAps.Activate();
+
+            //TEST LIST CURR WONDOWS
+            foreach (var w in NativeWindowEnumerator.GetAllOpenedWindows())
+            {
+                Debug.WriteLine($"#{w.DesktopIndex} {w.Title}  hwnd={w.Hwnd}");
+            }
         }
     }
 }
