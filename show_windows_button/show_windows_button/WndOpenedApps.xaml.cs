@@ -22,11 +22,9 @@ namespace show_windows_button
             // обработчик потери фокуса
             this.Activated += OnWindowActivated;
             InitializeComponent();
-            MoveToCursorPos();
+           
             HideDecoration();
-
-
-
+            MoveToCursorPos();
 
             Refresh();
         }
@@ -56,7 +54,35 @@ namespace show_windows_button
 
         private void MoveToCursorPos()
         {
-           
+            // Получаем позицию курсора
+            POINT cursorPos;
+            GetCursorPos(out cursorPos);
+
+            // Получаем handle окна
+            IntPtr hWnd = WindowNative.GetWindowHandle(this);
+            WindowId wndId = Win32Interop.GetWindowIdFromWindow(hWnd);
+            AppWindow appWindow = AppWindow.GetFromWindowId(wndId);
+
+            // Получаем размеры окна
+            var size = appWindow.Size;
+            int windowWidth = size.Width;
+            int windowHeight = size.Height;
+
+            // Получаем размеры экрана
+            int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+            int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+            // Вычисляем позицию окна (курсор по центру по горизонтали)
+            int posX = cursorPos.X - (windowWidth / 2);
+            int posY = cursorPos.Y;
+
+            // Проверяем, чтобы окно не выходило за границы экрана
+            if (posX < 0) posX = 0;
+            if (posX + windowWidth > screenWidth) posX = screenWidth - windowWidth;
+            if (posY + windowHeight > screenHeight) posY = screenHeight - windowHeight;
+
+            // Устанавливаем позицию окна
+            appWindow.Move(new Windows.Graphics.PointInt32(posX, posY));
         }
 
         private void OnWindowButtonClick(object sender, RoutedEventArgs e)
@@ -96,6 +122,26 @@ namespace show_windows_button
         }
         #endregion
 
+        #region for Cursor
 
+        // Win32 импорты для получения позиции курсора и размеров экрана
+        [StructLayout(LayoutKind.Sequential)]
+        public struct POINT
+        {
+            public int X;
+            public int Y;
+        }
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetCursorPos(out POINT lpPoint);
+
+        [DllImport("user32.dll")]
+        private static extern int GetSystemMetrics(int nIndex);
+
+        private const int SM_CXSCREEN = 0;
+        private const int SM_CYSCREEN = 1;
+
+        #endregion
     }
 }
