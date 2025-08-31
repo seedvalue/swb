@@ -1,4 +1,4 @@
-
+﻿
 <Window
     x:Class="show_windows_button.WndOpenedApps"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -16,11 +16,22 @@
         <ItemsControl x:Name="ItemsHost">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Button Content="{Binding Title}"
-                            HorizontalAlignment="Stretch"
+                    <Button HorizontalAlignment="Stretch"
                             Margin="4"
                             Click="OnWindowButtonClick"
-                            Tag="{Binding Hwnd}"/>
+                            Tag="{Binding Hwnd}">
+                        <Button.Content>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <!-- 16×16 иконка -->
+                                <Image Width="16"
+                                       Height="16"
+                                       Source="{Binding Icon}"
+                                       Stretch="Uniform"/>
+                                <TextBlock Text="{Binding Title}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button.Content>
+                    </Button>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>

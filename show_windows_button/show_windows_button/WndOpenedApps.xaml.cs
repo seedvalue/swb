@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -32,13 +33,22 @@ namespace show_windows_button
 
         private void Refresh()
         {
+            Debug.WriteLine("[WndOpenedApps] : Refresh");
             ItemsHost.ItemsSource = NativeWindowEnumerator.GetAllOpenedWindows();
         }
 
         private void OnWindowButtonClick(object sender, RoutedEventArgs e)
         {
+            Debug.WriteLine("[WndOpenedApps] : OnWindowButtonClick");
             if (sender is Button btn && btn.Tag is long hwnd)
                 BringToFront((IntPtr)hwnd);
+            HideWndOpenedApps();
+        }
+
+        private void HideWndOpenedApps()
+        {
+            Debug.WriteLine("[WndOpenedApps] : HideWndOpenedApps");
+            Close();
         }
 
 
@@ -53,6 +63,7 @@ namespace show_windows_button
 
         private void BringToFront(IntPtr hWnd)
         {
+            Debug.WriteLine("[WndOpenedApps] : OnWindowButtonClick");
             ShowWindow(hWnd, SW_RESTORE);
             SetForegroundWindow(hWnd);
         }
