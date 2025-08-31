@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -96,7 +97,8 @@ namespace show_windows_button
             EnumWindows((hWnd, lParam) =>
             {
                 if (!IsWindowVisible(hWnd)) return true;
-
+                GetWindowThreadProcessId(hWnd, out uint pid);
+                string exe = System.Diagnostics.Process.GetProcessById((int)pid).ProcessName;
                 int exStyle = (int)GetWindowLongPtr(hWnd, GWL_EXSTYLE);
                 bool isToolWindow = (exStyle & WS_EX_TOOLWINDOW) != 0;
                 bool isAppWindow = (exStyle & WS_EX_APPWINDOW) != 0;
@@ -112,14 +114,19 @@ namespace show_windows_button
                 {
                     Hwnd = hWnd.ToInt64(),
                     Title = title.Length == 0 ? "<no title>" : title.ToString(),
+                    ProcessName = exe,
                     Icon = GetIcon(hWnd),
                     DesktopIndex = desktopIndex
                 });
                 return true;
             }, IntPtr.Zero);
-            
-            DebugList(list);
-            return list;
+
+            var all = list.OrderBy(w => w.ProcessName)
+                          .ThenBy(w => w.DesktopIndex)
+                          .ToList();
+
+            DebugList(all);
+            return all;
         }
 
         private static void DebugList(List<WindowInfo> ls)
@@ -219,10 +226,11 @@ namespace show_windows_button
     public sealed class WindowInfo
     {
         public long Hwnd { get; init; }
+        public string ProcessName { get; init; } = string.Empty;
         public string Title { get; init; } = string.Empty;
         public BitmapImage? Icon { get; init; }
         public int DesktopIndex { get; init; }
 
-        public void DebugInfo() => Debug.WriteLine($"[WindowInfo] : DebugInfo : DesktopIndex={DesktopIndex}, Hwnd={Hwnd}, Title={Title}, IconPixelHeight={Icon?.PixelHeight}");
+        public void DebugInfo() => Debug.WriteLine($"[WindowInfo] : DebugInfo : ProcessName={ProcessName}, DesktopIndex={DesktopIndex}, Hwnd={Hwnd}, Title={Title}, IconPixelHeight={Icon?.PixelHeight}");
     }
 }

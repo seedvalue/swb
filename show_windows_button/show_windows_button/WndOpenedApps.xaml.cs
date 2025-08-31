@@ -1,19 +1,11 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Microsoft.UI;
+using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using WinRT.Interop;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -27,7 +19,15 @@ namespace show_windows_button
     {
         public WndOpenedApps()
         {
+            // обработчик потери фокуса
+            this.Activated += OnWindowActivated;
             InitializeComponent();
+            MoveToCursorPos();
+            HideDecoration();
+
+
+
+
             Refresh();
         }
 
@@ -35,6 +35,28 @@ namespace show_windows_button
         {
             Debug.WriteLine("[WndOpenedApps] : Refresh");
             ItemsHost.ItemsSource = NativeWindowEnumerator.GetAllOpenedWindows();
+        }
+
+        private void HideDecoration()
+        {
+            Debug.WriteLine("[WndOpenedApps] : HideDecoration");
+            IntPtr hWnd = WindowNative.GetWindowHandle(this);
+            WindowId wndId = Win32Interop.GetWindowIdFromWindow(hWnd);
+            AppWindow appWindow = AppWindow.GetFromWindowId(wndId);
+
+            // полностью убираем заголовок и кнопки
+            if (appWindow.Presenter is OverlappedPresenter presenter)
+            {
+                presenter.SetBorderAndTitleBar(true, false); // false == убрать title-bar
+                presenter.IsResizable = false;               // (по желанию)
+            }
+
+            appWindow.Resize(new Windows.Graphics.SizeInt32(320, 480));
+        }
+
+        private void MoveToCursorPos()
+        {
+           
         }
 
         private void OnWindowButtonClick(object sender, RoutedEventArgs e)
@@ -51,6 +73,11 @@ namespace show_windows_button
             Close();
         }
 
+        private void OnWindowActivated(object sender, WindowActivatedEventArgs args)
+        {
+            Debug.WriteLine($"[WndOpenedApps] : OnWindowActivated : {args.WindowActivationState}");
+            if (args.WindowActivationState == WindowActivationState.Deactivated) Close();
+        }
 
         #region Win32 activate
         [DllImport("user32.dll")]
@@ -68,5 +95,7 @@ namespace show_windows_button
             SetForegroundWindow(hWnd);
         }
         #endregion
+
+
     }
 }

@@ -6,13 +6,14 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="Opened windows">
+    Title="Opened windows"
+    >
 
 	<Window.SystemBackdrop>
 		<MicaBackdrop />
 	</Window.SystemBackdrop>
 
-    <ScrollViewer>
+    <ScrollViewer Padding="64">
         <ItemsControl x:Name="ItemsHost">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
