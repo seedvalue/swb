@@ -52,10 +52,8 @@ namespace show_windows_button
             // _windowAllAps.Activate();
 
             //TEST LIST CURR WONDOWS
-            foreach (var w in NativeWindowEnumerator.GetAllOpenedWindows())
-            {
-                Debug.WriteLine($"#{w.DesktopIndex} {w.Title}  hwnd={w.Hwnd}");
-            }
+            var openedAll = NativeWindowEnumerator.GetAllOpenedWindows();
+
         }
     }
 }
