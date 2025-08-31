@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "show_windows_button (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "show_windows_button (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
